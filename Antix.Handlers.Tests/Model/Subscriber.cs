@@ -8,13 +8,13 @@ namespace Antix.Handlers.Tests.Model
 {
     public sealed class Subscriber : ObserverBase<IEvent>
     {
-        readonly Executor<IEvent> _eventHandlers;
+        readonly Executor<IEvent> _executor;
         readonly IList<IEvent> _events;
 
         public Subscriber(
-            Executor<IEvent> eventHandlers)
+            Executor<IEvent> executor)
         {
-            _eventHandlers = eventHandlers;
+            _executor = executor;
             _events = new List<IEvent>();
         }
 
@@ -22,7 +22,7 @@ namespace Antix.Handlers.Tests.Model
 
         protected override void OnNextCore(IEvent e)
         {
-            _eventHandlers.Execute(e);
+            _executor.Execute(e);
             _events.Add(e);
         }
 

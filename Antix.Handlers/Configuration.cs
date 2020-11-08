@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Antix.Handlers
@@ -59,11 +60,21 @@ namespace Antix.Handlers
 
                         return new Handler<TMessageImplements>(
                             info.message,
-                            (message) => (Task)handle.Invoke(
-                                sp.GetRequiredService(info.service),
-                                new object[] { message }
-                                )
-                            );
+                            (message) =>
+                            {
+                                try
+                                {
+                                    return (Task)handle.Invoke(
+                                          sp.GetRequiredService(info.service),
+                                          new object[] { message }
+                                          );
+                                }
+                                catch (TargetInvocationException tiex)
+                                {
+
+                                    throw tiex.InnerException;
+                                }
+                            });
                     });
             }
 
@@ -131,11 +142,21 @@ namespace Antix.Handlers
                         return new Handler<TMessageImplements, TScope>(
                             info.message,
                             info.scope,
-                            (message, scope) => (Task)handle.Invoke(
-                                sp.GetRequiredService(info.service),
-                                new object[] { message, scope }
-                                )
-                            );
+                            (message, scope) =>
+                            {
+                                try
+                                {
+                                    return (Task)handle.Invoke(
+                                        sp.GetRequiredService(info.service),
+                                        new object[] { message, scope }
+                                        );
+                                }
+                                catch (TargetInvocationException tiex)
+                                {
+
+                                    throw tiex.InnerException;
+                                }
+                            });
                     });
             }
 

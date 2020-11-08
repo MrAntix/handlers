@@ -7,6 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antix.Handlers", "Antix.Han
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Antix.Handlers.Tests", "Antix.Handlers.Tests\Antix.Handlers.Tests.csproj", "{9E4C22C3-2FC9-4AED-B00E-F6F254B2D9E4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D8844E62-C52E-460D-94EF-50560930917E}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMe..md = ReadMe..md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

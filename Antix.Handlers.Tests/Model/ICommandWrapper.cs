@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Antix.Handlers.Tests.Model.Commands
+namespace Antix.Handlers.Tests.Model
 {
     public interface ICommandWrapper
     {

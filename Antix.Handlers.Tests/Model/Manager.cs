@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 
 namespace Antix.Handlers.Tests.Model
 {
@@ -33,25 +34,22 @@ namespace Antix.Handlers.Tests.Model
 
         public IObservable<IEvent> Events => _events;
 
-        public void Execute<TCommand>(TCommand command, string userId)
+        public async Task ExecuteAsync<TCommand>(TCommand command, string userId)
         {
-            lock (State)
+            var aggregate = new Aggregate(State);
+
+            var commandSequenceNumber = ++_commandSequenceNumber;
+            await _commandHandlers.ExecuteAsync(
+                new CommandWrapper<TCommand>(command, userId, commandSequenceNumber),
+                aggregate
+                );
+
+            var events = WrapEventData(aggregate.Uncommitted, userId);
+
+            foreach (var e in events)
             {
-                var aggregate = new Aggregate(State);
-
-                var commandSequenceNumber = ++_commandSequenceNumber;
-                _commandHandlers.Execute(
-                    new CommandWrapper<TCommand>(command, userId, commandSequenceNumber),
-                    aggregate
-                    );
-
-                var events = WrapEventData(aggregate.Uncommitted, userId);
-
-                foreach (var e in events)
-                {
-                    State = State.Apply(e);
-                    _events.OnNext(e);
-                }
+                State = State.Apply(e);
+                _events.OnNext(e);
             }
         }
 

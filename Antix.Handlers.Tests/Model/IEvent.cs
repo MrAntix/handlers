@@ -1,4 +1,4 @@
-﻿namespace Antix.Handlers.Tests.Model.Events
+﻿namespace Antix.Handlers.Tests.Model
 {
     public interface IEvent
     {
