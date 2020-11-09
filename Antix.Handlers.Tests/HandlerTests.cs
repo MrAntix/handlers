@@ -3,7 +3,6 @@ using Antix.Handlers.Tests.Model.Commands;
 using Antix.Handlers.Tests.Model.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Threading.Tasks;
 
 namespace Antix.Handlers.Tests
@@ -12,28 +11,60 @@ namespace Antix.Handlers.Tests
     public sealed class HandlerTests
     {
         [TestMethod]
-        public async Task handlers_called()
+        public async Task successful_commands_update_manager_state()
         {
             var serviceProvider = GetServiceProvider();
 
             var manager = serviceProvider.GetService<Manager>();
+            var subscriber = serviceProvider.GetService<Subscriber>();
+
+            await RunEventSourcingScenarioAsync(manager, subscriber);
+
+            Assert.AreEqual(6, manager.State.Total);
+        }
+
+        [TestMethod]
+        public async Task successful_commands_update_eventStore()
+        {
+            var serviceProvider = GetServiceProvider();
+
+            var manager = serviceProvider.GetService<Manager>();
+            var subscriber = serviceProvider.GetService<Subscriber>();
+
+            await RunEventSourcingScenarioAsync(manager, subscriber);
+
+            Assert.AreEqual(3, manager.EventsStore.Count);
+            Assert.AreEqual(4U, manager.EventsStore[2].SequenceNumber);
+        }
+
+        [TestMethod]
+        public async Task successful_event_handlers_update_dataStore()
+        {
+            var serviceProvider = GetServiceProvider();
+
+            var manager = serviceProvider.GetService<Manager>();
+            var subscriber = serviceProvider.GetService<Subscriber>();
+            var dataStore = serviceProvider.GetService<DataStore>();
+
+            await RunEventSourcingScenarioAsync(manager, subscriber);
+
+            Assert.AreEqual(6, dataStore.Total);
+        }
+
+        static async Task RunEventSourcingScenarioAsync(
+            Manager manager, Subscriber subscriber)
+        {
             manager.LoadState(new[]{
                 Event.From(new TotalSet(5), "Initial", 1 )
             });
 
-            var subscriber = serviceProvider.GetService<Subscriber>();
-            manager.Events.Subscribe(subscriber);
+            using (manager.Events.Subscribe(subscriber))
+            {
 
-            var store = serviceProvider.GetService<Store>();
-
-            await manager.ExecuteAsync(new Increment(), "One");
-            await manager.ExecuteAsync(new Increment(), "Two");
-            await manager.ExecuteAsync(new Decrement(), "Three");
-
-            Assert.AreEqual(6, manager.State.Total);
-            Assert.AreEqual(6, store.Total);
-            Assert.AreEqual(3, subscriber.Events.Count);
-            Assert.AreEqual(4U, subscriber.Events[2].SequenceNumber);
+                await manager.ExecuteAsync(new Increment(), "One");
+                await manager.ExecuteAsync(new Increment(), "Two");
+                await manager.ExecuteAsync(new Decrement(), "Three");
+            }
         }
 
         [TestMethod]
@@ -44,11 +75,14 @@ namespace Antix.Handlers.Tests
             var manager = serviceProvider.GetService<Manager>();
 
             const string errorText = "ERROR";
-            var ex = await Assert.ThrowsExceptionAsync<Exception>(async () =>
-               await manager.ExecuteAsync(new CauseError(errorText), "One")
-             );
+            var command = new CauseError(errorText);
+            var ex = await Assert
+                .ThrowsExceptionAsync<HandlerException<ICommandWrapper, Aggregate>>(
+                    async () =>
+                        await manager.ExecuteAsync(command, "One")
+                        );
 
-            Assert.AreEqual(errorText, ex.Message);
+            Assert.AreEqual(command, ex.Attempted.Command);
         }
 
         static ServiceProvider GetServiceProvider()
@@ -56,7 +90,7 @@ namespace Antix.Handlers.Tests
             return new ServiceCollection()
                 .AddTransient<Manager>()
                 .AddTransient<Subscriber>()
-                .AddSingleton<Store>()
+                .AddSingleton<DataStore>()
                 .AddHandlers<ICommandWrapper, Aggregate>()
                 .AddHandlers<IEvent>()
                 .BuildServiceProvider();

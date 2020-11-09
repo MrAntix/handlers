@@ -9,32 +9,32 @@ namespace Antix.Handlers
     public static class Configuration
     {
         /// <summary>
-        /// Add all handlers for the given message type in the same assembly as the message type
+        /// Add all handlers for the given data type in the same assembly as the data type
         /// </summary>
-        /// <typeparam name="TMessageImplements">Type implemented by the message types</typeparam>
+        /// <typeparam name="TDataImplements">Type implemented by the data types</typeparam>
         /// <param name="services">Service collection</param>
         /// <returns>Service collection</returns>
-        public static IServiceCollection AddHandlers<TMessageImplements>(
+        public static IServiceCollection AddHandlers<TDataImplements>(
             this IServiceCollection services)
         {
             return services
-                .AddHandlersInAssembly<TMessageImplements, TMessageImplements>();
+                .AddHandlersInAssembly<TDataImplements, TDataImplements>();
         }
 
         /// <summary>
-        /// Add all handlers for the given message type in the same assembly as the TAssemblyOf type
+        /// Add all handlers for the given data type in the same assembly as the TAssemblyOf type
         /// </summary>
-        /// <typeparam name="TMessageImplements">Type implemented by the message types</typeparam>
+        /// <typeparam name="TDataImplements">Type implemented by the data types</typeparam>
         /// <typeparam name="TAssemblyOf">A Type in the target assembly</typeparam>
         /// <param name="services">Service collection</param>
         /// <returns>Service collection</returns>
-        public static IServiceCollection AddHandlersInAssembly<TMessageImplements, TAssemblyOf>(
+        public static IServiceCollection AddHandlersInAssembly<TDataImplements, TAssemblyOf>(
             this IServiceCollection services
             )
         {
-            services.TryAddTransient<Executor<TMessageImplements>>();
+            services.TryAddTransient<Executor<TDataImplements>>();
 
-            var messageType = typeof(TMessageImplements);
+            var dataType = typeof(TDataImplements);
             var handlerType = typeof(IHandler<>);
             var handleMethodName = nameof(IHandler<object>.HandleAsync);
 
@@ -43,10 +43,10 @@ namespace Antix.Handlers
                                   where service.IsGenericType
                                           && service.GetGenericTypeDefinition() == handlerType
                                   let arguments = service.GetGenericArguments()
-                                  where arguments[0].IsAssignableTo(messageType)
+                                  where arguments[0].IsAssignableTo(dataType)
                                   select new
                                   {
-                                      message = arguments[0],
+                                      data = arguments[0],
                                       service,
                                       implementation
                                   }).ToArray())
@@ -58,21 +58,21 @@ namespace Antix.Handlers
                         var handle = info.service
                             .GetMethod(handleMethodName);
 
-                        return new Handler<TMessageImplements>(
-                            info.message,
-                            (message) =>
+                        return new Handler<TDataImplements>(
+                            info.data,
+                            (data) =>
                             {
                                 try
                                 {
                                     return (Task)handle.Invoke(
                                           sp.GetRequiredService(info.service),
-                                          new object[] { message }
+                                          new object[] { data }
                                           );
                                 }
                                 catch (TargetInvocationException tiex)
                                 {
 
-                                    throw tiex.InnerException;
+                                    throw new HandlerException<TDataImplements>(data, tiex);
                                 }
                             });
                     });
@@ -82,37 +82,37 @@ namespace Antix.Handlers
         }
 
         /// <summary>
-        /// Add all handlers for the given message type and scope type in the same assembly as the message type
+        /// Add all handlers for the given data type and scope type in the same assembly as the data type
         /// </summary>
-        /// <typeparam name="TMessageImplements">Type implemented by the message types</typeparam>
+        /// <typeparam name="TDataImplements">Type implemented by the data types</typeparam>
         /// <typeparam name="TScope">Scope Type</typeparam>
         /// <param name="services">Service collection</param>
         /// <returns>Service collection</returns>
-        public static IServiceCollection AddHandlers<TMessageImplements, TScope>(
+        public static IServiceCollection AddHandlers<TDataImplements, TScope>(
             this IServiceCollection services)
             where TScope : class
         {
             return services
-                .AddHandlersInAssembly<TMessageImplements, TScope, TMessageImplements>();
+                .AddHandlersInAssembly<TDataImplements, TScope, TDataImplements>();
         }
 
         /// <summary>
-        /// Add all handlers for the given message type and scope type in the same assembly as the TAssemblyOf type
+        /// Add all handlers for the given data type and scope type in the same assembly as the TAssemblyOf type
         /// </summary>
-        /// <typeparam name="TMessageImplements">Type implemented by the message types</typeparam>
+        /// <typeparam name="TDataImplements">Type implemented by the data types</typeparam>
         /// <typeparam name="TScope">Scope Type</typeparam>
         /// <typeparam name="TAssemblyOf">A Type in the target assembly</typeparam>
         /// <param name="services">Service collection</param>
         /// <returns>Service collection</returns>
-        public static IServiceCollection AddHandlersInAssembly<TMessageImplements, TScope, TAssemblyOf>(
+        public static IServiceCollection AddHandlersInAssembly<TDataImplements, TScope, TAssemblyOf>(
             this IServiceCollection services
             )
             where TScope : class
         {
             services.TryAddSingleton<TScope>();
-            services.TryAddTransient<Executor<TMessageImplements, TScope>>();
+            services.TryAddTransient<Executor<TDataImplements, TScope>>();
 
-            var messageType = typeof(TMessageImplements);
+            var dataType = typeof(TDataImplements);
             var scopeType = typeof(TScope);
             var handlerType = typeof(IHandler<,>);
             var handleMethodName = nameof(IHandler<TScope, object>.HandleAsync);
@@ -122,11 +122,11 @@ namespace Antix.Handlers
                                   where service.IsGenericType
                                           && service.GetGenericTypeDefinition() == handlerType
                                   let arguments = service.GetGenericArguments()
-                                  where arguments[0].IsAssignableTo(messageType)
+                                  where arguments[0].IsAssignableTo(dataType)
                                         && arguments[1] == scopeType
                                   select new
                                   {
-                                      message = arguments[0],
+                                      data = arguments[0],
                                       scope = arguments[1],
                                       service,
                                       implementation
@@ -139,22 +139,22 @@ namespace Antix.Handlers
                         var handle = info.service
                             .GetMethod(handleMethodName);
 
-                        return new Handler<TMessageImplements, TScope>(
-                            info.message,
+                        return new Handler<TDataImplements, TScope>(
+                            info.data,
                             info.scope,
-                            (message, scope) =>
+                            (data, scope) =>
                             {
                                 try
                                 {
                                     return (Task)handle.Invoke(
                                         sp.GetRequiredService(info.service),
-                                        new object[] { message, scope }
+                                        new object[] { data, scope }
                                         );
                                 }
                                 catch (TargetInvocationException tiex)
                                 {
 
-                                    throw tiex.InnerException;
+                                    throw new HandlerException<TDataImplements, TScope>(data, scope, tiex);
                                 }
                             });
                     });

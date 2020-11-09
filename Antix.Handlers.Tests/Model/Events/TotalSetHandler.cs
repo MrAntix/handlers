@@ -5,10 +5,10 @@ namespace Antix.Handlers.Tests.Model.Events
     public sealed class TotalSetHandler :
         IHandler<Event<TotalSet>>
     {
-        readonly Store _store;
+        readonly DataStore _store;
 
         public TotalSetHandler(
-            Store store)
+            DataStore store)
         {
             _store = store;
         }

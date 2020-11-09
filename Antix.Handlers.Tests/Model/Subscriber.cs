@@ -1,33 +1,29 @@
-﻿using Antix.Handlers.Tests.Model.Events;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Reactive;
+﻿using System;
 
 namespace Antix.Handlers.Tests.Model
 {
-    public sealed class Subscriber : ObserverBase<IEvent>
+    public sealed class Subscriber : IObserver<IEvent>
     {
         readonly Executor<IEvent> _executor;
-        readonly IList<IEvent> _events;
 
         public Subscriber(
             Executor<IEvent> executor)
         {
             _executor = executor;
-            _events = new List<IEvent>();
         }
 
-        public IImmutableList<IEvent> Events => _events.ToImmutableList();
-
-        protected override void OnNextCore(IEvent e)
+        public void OnNext(IEvent e)
         {
             _executor.Execute(e);
-            _events.Add(e);
         }
 
-        protected override void OnCompletedCore() { }
+        public void OnError(Exception ex)
+        {
+            throw ex;
+        }
 
-        protected override void OnErrorCore(Exception error) { }
+        public void OnCompleted()
+        {
+        }
     }
 }

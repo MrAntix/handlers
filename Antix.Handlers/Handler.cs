@@ -3,35 +3,35 @@ using System.Threading.Tasks;
 
 namespace Antix.Handlers
 {
-    public sealed class Handler<TMessage>
+    public sealed class Handler<TData>
     {
         public Handler(
-            Type messageType,
-            Func<TMessage, Task> handleAsync)
+            Type dataType,
+            Func<TData, Task> handleAsync)
         {
-            MessageType = messageType;
+            DataType = dataType;
             HandleAsync = handleAsync;
         }
 
-        public Type MessageType { get; }
-        public Func<TMessage, Task> HandleAsync { get; }
+        public Type DataType { get; }
+        public Func<TData, Task> HandleAsync { get; }
     }
 
-    public sealed class Handler<TMessage, TScope>
+    public sealed class Handler<TData, TScope>
         where TScope : class
     {
         public Handler(
-            Type messageType,
+            Type dataType,
             Type scopeType,
-            Func<TMessage, TScope, Task> handleAsync)
+            Func<TData, TScope, Task> handleAsync)
         {
-            MessageType = messageType;
+            DataType = dataType;
             ScopeType = scopeType;
             HandleAsync = handleAsync;
         }
 
-        public Type MessageType { get; }
+        public Type DataType { get; }
         public Type ScopeType { get; }
-        public Func<TMessage, TScope, Task> HandleAsync { get; }
+        public Func<TData, TScope, Task> HandleAsync { get; }
     }
 }

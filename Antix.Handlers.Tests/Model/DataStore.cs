@@ -1,6 +1,6 @@
 ﻿namespace Antix.Handlers.Tests.Model
 {
-    public sealed class Store
+    public sealed class DataStore
     {
         public int Total { get; set; }
     }

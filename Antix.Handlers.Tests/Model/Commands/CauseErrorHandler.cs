@@ -7,9 +7,9 @@ namespace Antix.Handlers.Tests.Model.Commands
         IHandler<CommandWrapper<CauseError>, Aggregate>
     {
         Task IHandler<CommandWrapper<CauseError>, Aggregate>
-            .HandleAsync(CommandWrapper<CauseError> message, Aggregate scope)
+            .HandleAsync(CommandWrapper<CauseError> data, Aggregate scope)
         {
-            throw new Exception(message.Command.Text);
+            throw new Exception(data.Command.Text);
         }
     }
 }

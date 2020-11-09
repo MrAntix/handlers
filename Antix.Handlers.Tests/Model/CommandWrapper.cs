@@ -20,5 +20,7 @@ namespace Antix.Handlers.Tests.Model
         public string UserId { get; }
         public uint SequenceNumber { get; }
         public DateTimeOffset On { get; }
+
+        object ICommandWrapper.Command => Command;
     }
 }

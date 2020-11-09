@@ -1,7 +1,6 @@
-﻿using Antix.Handlers.Tests.Model.Commands;
-using Antix.Handlers.Tests.Model.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -12,6 +11,8 @@ namespace Antix.Handlers.Tests.Model
     {
         readonly Executor<ICommandWrapper, Aggregate> _commandHandlers;
         readonly Subject<IEvent> _events;
+        readonly IList<IEvent> _eventsStore;
+
 
         uint _commandSequenceNumber;
 
@@ -20,6 +21,8 @@ namespace Antix.Handlers.Tests.Model
         {
             _commandHandlers = commandHandlers;
             _events = new Subject<IEvent>();
+            _eventsStore = new List<IEvent>();
+
 
             State = new State();
         }
@@ -33,6 +36,7 @@ namespace Antix.Handlers.Tests.Model
         }
 
         public IObservable<IEvent> Events => _events;
+        public IImmutableList<IEvent> EventsStore => _eventsStore.ToImmutableList();
 
         public async Task ExecuteAsync<TCommand>(TCommand command, string userId)
         {
@@ -49,6 +53,7 @@ namespace Antix.Handlers.Tests.Model
             foreach (var e in events)
             {
                 State = State.Apply(e);
+                _eventsStore.Add(e);
                 _events.OnNext(e);
             }
         }
