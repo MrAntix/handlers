@@ -3,10 +3,10 @@
 namespace Antix.Handlers
 {
     [Serializable]
-    public class HandlerNotFoundException: 
+    public class HandlerNotFoundException :
         Exception
     {
-        public HandlerNotFoundException() 
+        public HandlerNotFoundException()
         {
         }
 

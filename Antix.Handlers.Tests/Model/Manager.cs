@@ -23,8 +23,7 @@ namespace Antix.Handlers.Tests.Model
             _events = new Subject<IEvent>();
             _eventsStore = new List<IEvent>();
 
-
-            State = new State();
+            State = State.Initial;
         }
 
         public State State { get; private set; }

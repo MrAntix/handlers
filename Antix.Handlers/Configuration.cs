@@ -143,7 +143,6 @@ namespace Antix.Handlers
 
                         return new Handler<TDataImplements, TScope>(
                             info.data,
-                            info.scope,
                             (data, scope) =>
                             {
                                 try

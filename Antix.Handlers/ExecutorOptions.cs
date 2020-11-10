@@ -13,7 +13,7 @@
         public ExecutorOptions SetRequireHandlers(bool value)
         {
             return new ExecutorOptions(
-                requireHandlers:value
+                requireHandlers: value
                 );
         }
 

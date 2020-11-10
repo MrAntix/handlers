@@ -2,6 +2,20 @@
 
 namespace Antix.Handlers.Tests.Model
 {
+    public static class CommandWrapper
+    {
+        public static CommandWrapper<TCommand> From<TCommand>(
+            TCommand command,
+            string userId = null, uint sequenceNumber = 0,
+            DateTimeOffset? on = null)
+        {
+            return new CommandWrapper<TCommand>(
+                command,
+                userId, sequenceNumber,
+                on);
+        }
+    }
+
     public sealed class CommandWrapper<TCommand> : ICommandWrapper
     {
         public CommandWrapper(

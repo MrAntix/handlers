@@ -36,5 +36,6 @@ namespace Antix.Handlers.Tests.Model
             return state;
         }
 
+        public static readonly State Initial = new State(0, 0);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Antix.Handlers.Tests
+namespace Antix.Handlers.Tests.Model
 {
     public sealed class EventLog
     {
@@ -12,6 +12,9 @@ namespace Antix.Handlers.Tests
             _events.Add(@event);
         }
 
-        public IImmutableList<string> GetAll() => _events.ToImmutableList();
+        public IImmutableList<string> GetAll()
+        {
+            return _events.ToImmutableList();
+        }
     }
 }

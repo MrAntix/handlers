@@ -5,7 +5,7 @@ namespace Antix.Handlers
 {
 
     [Serializable]
-    public class HandlerException<TDataImplements> : 
+    public class HandlerException<TDataImplements> :
         Exception
     {
         public HandlerException(
@@ -26,7 +26,7 @@ namespace Antix.Handlers
     }
 
     [Serializable]
-    public class HandlerException<TDataImplements, TScope> : 
+    public class HandlerException<TDataImplements, TScope> :
         Exception
     {
         public HandlerException(

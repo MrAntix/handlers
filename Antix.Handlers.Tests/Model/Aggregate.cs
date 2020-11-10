@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace Antix.Handlers.Tests.Model
 {
-    public sealed class Aggregate 
+    public sealed class Aggregate
     {
         public Aggregate(
-            State state)
+            State state = null)
         {
-            State = state;
+            State = state ?? State.Initial;
         }
 
         public State State { get; }
