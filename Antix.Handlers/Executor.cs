@@ -11,15 +11,20 @@ namespace Antix.Handlers
     /// <typeparam name="TData">Data Type</typeparam>
     public sealed class Executor<TData>
     {
+        readonly IEnumerable<Handler<TData>> _allHandlers;
         readonly Dictionary<Type, Func<TData, Task>> _handlers;
+        readonly ExecutorOptions _options;
 
         public Executor(
-            IEnumerable<Handler<TData>> handlers)
+            IEnumerable<Handler<TData>> handlers,
+            ExecutorOptions options = null)
         {
+            _allHandlers = handlers;
             _handlers = handlers.ToDictionary(
                 handler => handler.DataType,
                 handler => handler.HandleAsync
                 );
+            _options = options ?? ExecutorOptions.Default;
         }
 
         /// <summary>
@@ -31,7 +36,16 @@ namespace Antix.Handlers
             T data)
             where T : TData
         {
-            return _handlers[data.GetType()](data);
+            var handler = _handlers.ContainsKey(data.GetType())
+                ? _handlers[data.GetType()]
+                : null;
+            if (handler == null)
+            {
+                if (!_options.RequireHandlers) return Task.CompletedTask;
+
+                throw new HandlerNotFoundException();
+            }
+            return handler(data);
         }
 
         /// <summary>
@@ -43,7 +57,19 @@ namespace Antix.Handlers
             T data)
             where T : TData
         {
-            _handlers[data.GetType()](data).GetAwaiter().GetResult();
+            ExecuteAsync(data).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Make handlers required, will throw HandlerNotFoundException
+        /// </summary>
+        /// <returns>Executor</returns>
+        public Executor<TData> RequireHandlers()
+        {
+            return new Executor<TData>(
+                _allHandlers,
+                _options.SetRequireHandlers(true)
+                ); ;
         }
     }
 
@@ -55,15 +81,20 @@ namespace Antix.Handlers
     public sealed class Executor<TData, TScope>
         where TScope : class
     {
+        readonly IEnumerable<Handler<TData, TScope>> _allHandlers;
         readonly Dictionary<Type, Func<TData, TScope, Task>> _handlers;
+        readonly ExecutorOptions _options;
 
         public Executor(
-            IEnumerable<Handler<TData, TScope>> handlers)
+            IEnumerable<Handler<TData, TScope>> handlers,
+            ExecutorOptions options = null)
         {
+            _allHandlers = handlers;
             _handlers = handlers.ToDictionary(
                 handler => handler.DataType,
                 handler => handler.HandleAsync
                 );
+            _options = options ?? ExecutorOptions.Default;
         }
 
         /// <summary>
@@ -77,7 +108,17 @@ namespace Antix.Handlers
             TScope scope)
             where T : TData
         {
-            return _handlers[data.GetType()](data, scope);
+            var handler = _handlers.ContainsKey(data.GetType())
+                ? _handlers[data.GetType()]
+                : null;
+            if (handler == null)
+            {
+                if (!_options.RequireHandlers) return Task.CompletedTask;
+
+                throw new HandlerNotFoundException();
+            }
+
+            return handler(data, scope);
         }
 
         /// <summary>
@@ -91,8 +132,19 @@ namespace Antix.Handlers
             TScope scope)
             where T : TData
         {
-            _handlers[data.GetType()](data, scope).GetAwaiter().GetResult();
+            ExecuteAsync(data, scope).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Make handlers required, will throw HandlerNotFoundException
+        /// </summary>
+        /// <returns>Executor</returns>
+        public Executor<TData, TScope> RequireHandlers()
+        {
+            return new Executor<TData, TScope>(
+                _allHandlers,
+                _options.SetRequireHandlers(true)
+                ); ;
         }
     }
-
 }

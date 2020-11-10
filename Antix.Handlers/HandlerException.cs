@@ -3,6 +3,7 @@ using System.Reflection;
 
 namespace Antix.Handlers
 {
+
     [Serializable]
     public class HandlerException<TDataImplements> : 
         Exception

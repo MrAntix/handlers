@@ -85,11 +85,41 @@ namespace Antix.Handlers.Tests
             Assert.AreEqual(command, ex.Attempted.Command);
         }
 
-        static ServiceProvider GetServiceProvider()
+        [TestMethod]
+        public async Task ignore_when_no_handler()
+        {
+            var serviceProvider = GetServiceProvider();
+
+            var manager = serviceProvider.GetService<Manager>();
+
+            var command = new NoHandler();
+            await manager.ExecuteAsync(command, "One");
+        }
+
+        [TestMethod]
+        public async Task require_handlers()
+        {
+            var serviceProvider = GetServiceProvider(
+                ExecutorOptions.Default.SetRequireHandlers(true)
+                );
+
+            var manager = serviceProvider.GetService<Manager>();
+
+            var command = new NoHandler();
+            var ex = await Assert
+                .ThrowsExceptionAsync<HandlerNotFoundException>(
+                    async () =>
+                        await manager.ExecuteAsync(command, "One")
+                        );
+        }
+
+        static ServiceProvider GetServiceProvider(
+            ExecutorOptions executorOptions = null)
         {
             return new ServiceCollection()
-                .AddTransient<Manager>()
-                .AddTransient<Subscriber>()
+                .AddSingleton(executorOptions ?? ExecutorOptions.Default)
+                .AddSingleton<Manager>()
+                .AddSingleton<Subscriber>()
                 .AddSingleton<DataStore>()
                 .AddHandlers<ICommandWrapper, Aggregate>()
                 .AddHandlers<IEvent>()
