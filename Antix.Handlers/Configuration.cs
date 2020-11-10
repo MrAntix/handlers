@@ -52,6 +52,7 @@ namespace Antix.Handlers
                                   }).ToArray())
             {
                 services.AddTransient(info.service, info.implementation);
+                services.AddTransient(info.implementation);
                 services.AddSingleton(
                     sp =>
                     {
@@ -65,7 +66,7 @@ namespace Antix.Handlers
                                 try
                                 {
                                     return (Task)handle.Invoke(
-                                          sp.GetRequiredService(info.service),
+                                          sp.GetRequiredService(info.implementation),
                                           new object[] { data }
                                           );
                                 }
@@ -133,6 +134,7 @@ namespace Antix.Handlers
                                   }).ToArray())
             {
                 services.AddTransient(info.service, info.implementation);
+                services.AddTransient(info.implementation);
                 services.AddSingleton(
                     sp =>
                     {
@@ -147,7 +149,7 @@ namespace Antix.Handlers
                                 try
                                 {
                                     return (Task)handle.Invoke(
-                                        sp.GetRequiredService(info.service),
+                                        sp.GetRequiredService(info.implementation),
                                         new object[] { data, scope }
                                         );
                                 }

@@ -113,6 +113,21 @@ namespace Antix.Handlers.Tests
                         );
         }
 
+        [TestMethod]
+        public async Task multiple_handlers()
+        {
+            var serviceProvider = GetServiceProvider();
+
+            var executor = serviceProvider.GetService<Executor<IEvent>>();
+            var dataStore = serviceProvider.GetService<DataStore>();
+            var eventLog = serviceProvider.GetService<EventLog>();
+
+            await executor.ExecuteAsync(Event.From(new TotalSet(7), "One", 1));
+
+            Assert.AreEqual(7, dataStore.Total);
+            Assert.AreEqual(1, eventLog.GetAll().Count);
+        }
+
         static ServiceProvider GetServiceProvider(
             ExecutorOptions executorOptions = null)
         {
@@ -121,6 +136,7 @@ namespace Antix.Handlers.Tests
                 .AddSingleton<Manager>()
                 .AddSingleton<Subscriber>()
                 .AddSingleton<DataStore>()
+                .AddSingleton<EventLog>()
                 .AddHandlers<ICommandWrapper, Aggregate>()
                 .AddHandlers<IEvent>()
                 .BuildServiceProvider();

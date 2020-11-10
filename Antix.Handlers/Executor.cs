@@ -12,7 +12,7 @@ namespace Antix.Handlers
     public sealed class Executor<TData>
     {
         readonly IEnumerable<Handler<TData>> _allHandlers;
-        readonly Dictionary<Type, Func<TData, Task>> _handlers;
+        readonly Dictionary<Type, IList<Func<TData, Task>>> _handlers;
         readonly ExecutorOptions _options;
 
         public Executor(
@@ -20,10 +20,17 @@ namespace Antix.Handlers
             ExecutorOptions options = null)
         {
             _allHandlers = handlers;
-            _handlers = handlers.ToDictionary(
-                handler => handler.DataType,
-                handler => handler.HandleAsync
-                );
+            _handlers = handlers.Aggregate(
+                new Dictionary<Type, IList<Func<TData, Task>>>(),
+                (result, handler) =>
+                {
+                    if (!result.ContainsKey(handler.DataType))
+                        result.Add(handler.DataType, new List<Func<TData, Task>>());
+
+                    result[handler.DataType].Add(handler.HandleAsync);
+
+                    return result;
+                });
             _options = options ?? ExecutorOptions.Default;
         }
 
@@ -36,16 +43,21 @@ namespace Antix.Handlers
             T data)
             where T : TData
         {
-            var handler = _handlers.ContainsKey(data.GetType())
+            var handlers = _handlers.ContainsKey(data.GetType())
                 ? _handlers[data.GetType()]
                 : null;
-            if (handler == null)
+            if (handlers == null)
             {
                 if (!_options.RequireHandlers) return Task.CompletedTask;
 
                 throw new HandlerNotFoundException();
             }
-            return handler(data);
+
+            return Task.WhenAll(
+                handlers
+                    .Select(handler => handler(data))
+                    .ToArray()
+                );
         }
 
         /// <summary>
@@ -82,7 +94,7 @@ namespace Antix.Handlers
         where TScope : class
     {
         readonly IEnumerable<Handler<TData, TScope>> _allHandlers;
-        readonly Dictionary<Type, Func<TData, TScope, Task>> _handlers;
+        readonly Dictionary<Type, IList<Func<TData, TScope, Task>>> _handlers;
         readonly ExecutorOptions _options;
 
         public Executor(
@@ -90,10 +102,17 @@ namespace Antix.Handlers
             ExecutorOptions options = null)
         {
             _allHandlers = handlers;
-            _handlers = handlers.ToDictionary(
-                handler => handler.DataType,
-                handler => handler.HandleAsync
-                );
+            _handlers = handlers.Aggregate(
+                new Dictionary<Type, IList<Func<TData, TScope, Task>>>(),
+                (result, handler) =>
+                {
+                    if (!result.ContainsKey(handler.DataType))
+                        result.Add(handler.DataType, new List<Func<TData, TScope, Task>>());
+
+                    result[handler.DataType].Add(handler.HandleAsync);
+
+                    return result;
+                });
             _options = options ?? ExecutorOptions.Default;
         }
 
@@ -108,17 +127,21 @@ namespace Antix.Handlers
             TScope scope)
             where T : TData
         {
-            var handler = _handlers.ContainsKey(data.GetType())
+            var handlers = _handlers.ContainsKey(data.GetType())
                 ? _handlers[data.GetType()]
                 : null;
-            if (handler == null)
+            if (handlers == null)
             {
                 if (!_options.RequireHandlers) return Task.CompletedTask;
 
                 throw new HandlerNotFoundException();
             }
 
-            return handler(data, scope);
+            return Task.WhenAll(
+                handlers
+                    .Select(handler => handler(data, scope))
+                    .ToArray()
+                );
         }
 
         /// <summary>
