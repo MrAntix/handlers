@@ -14,6 +14,7 @@ namespace Antix.Handlers
     {
         readonly IImmutableList<Handler<TDataImplements>> _allHandlers;
         readonly IImmutableDictionary<Type, ImmutableList<Func<TDataImplements, Task>>> _handlers;
+
         readonly ExecutorOptions _options;
 
         public Executor(
@@ -39,8 +40,15 @@ namespace Antix.Handlers
                         );
                 });
 
+            DataTypes = _handlers.Keys.ToImmutableList();
+
             _options = options ?? ExecutorOptions.Default;
         }
+
+        /// <summary>
+        /// All handled data types
+        /// </summary>
+        public IImmutableList<Type> DataTypes { get; }
 
         /// <summary>
         /// Add a delegate/method as a handler
@@ -106,8 +114,9 @@ namespace Antix.Handlers
             T data)
             where T : TDataImplements
         {
-            var handlers = _handlers.ContainsKey(data.GetType())
-                ? _handlers[data.GetType()]
+            var dataType = data.GetType();
+            var handlers = _handlers.ContainsKey(dataType)
+                ? _handlers[dataType]
                 : null;
             if (handlers == null)
             {
@@ -158,6 +167,7 @@ namespace Antix.Handlers
     {
         readonly IImmutableList<Handler<TDataImplements, TScope>> _allHandlers;
         readonly IImmutableDictionary<Type, ImmutableList<Func<TDataImplements, TScope, Task>>> _handlers;
+
         readonly ExecutorOptions _options;
 
         public Executor(
@@ -182,8 +192,15 @@ namespace Antix.Handlers
                         );
                 });
 
+            DataTypes = _handlers.Keys.ToImmutableList();
+
             _options = options ?? ExecutorOptions.Default;
         }
+
+        /// <summary>
+        /// All handled data types
+        /// </summary>
+        public IImmutableList<Type> DataTypes { get; }
 
         /// <summary>
         /// Add a delegate/method as a handler
@@ -251,8 +268,9 @@ namespace Antix.Handlers
             TScope scope)
             where T : TDataImplements
         {
-            var handlers = _handlers.ContainsKey(data.GetType())
-                ? _handlers[data.GetType()]
+            var dataType = data.GetType();
+            var handlers = _handlers.ContainsKey(dataType)
+                ? _handlers[dataType]
                 : null;
             if (handlers == null)
             {
