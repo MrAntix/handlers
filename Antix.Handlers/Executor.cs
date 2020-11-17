@@ -18,12 +18,13 @@ namespace Antix.Handlers
         readonly ExecutorOptions _options;
 
         public Executor(
-            IEnumerable<Handler<TDataImplements>> handlers,
+            IEnumerable<Handler<TDataImplements>> handlers = null,
             ExecutorOptions options = null)
         {
-            _allHandlers = handlers.ToImmutableList();
+            _allHandlers = handlers?.ToImmutableList()
+                ?? ImmutableList<Handler<TDataImplements>>.Empty;
 
-            _handlers = handlers.Aggregate(
+            _handlers = _allHandlers.Aggregate(
                 ImmutableDictionary<Type, ImmutableList<Func<TDataImplements, Task>>>.Empty,
                 (result, handler) =>
                 {
@@ -171,11 +172,13 @@ namespace Antix.Handlers
         readonly ExecutorOptions _options;
 
         public Executor(
-            IEnumerable<Handler<TDataImplements, TScope>> handlers,
+            IEnumerable<Handler<TDataImplements, TScope>> handlers = null,
             ExecutorOptions options = null)
         {
-            _allHandlers = handlers.ToImmutableList();
-            _handlers = handlers.Aggregate(
+            _allHandlers = handlers?.ToImmutableList()
+                ?? ImmutableList<Handler<TDataImplements, TScope>>.Empty;
+
+            _handlers = _allHandlers.Aggregate(
                 ImmutableDictionary<Type, ImmutableList<Func<TDataImplements, TScope, Task>>>.Empty,
                 (result, handler) =>
                 {

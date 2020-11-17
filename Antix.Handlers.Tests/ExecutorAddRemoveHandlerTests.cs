@@ -49,7 +49,7 @@ namespace Antix.Handlers.Tests
             var serviceProvider = TestConfiguration.GetServiceProvider();
 
             var are = new AutoResetEvent(false);
-            var executor = serviceProvider.GetService<Executor<IEvent>>()
+            var executor = new Executor<IEvent>()
                 .AddHandler<Event<TotalSet>>(d =>
                 {
                     are.Set();
@@ -64,7 +64,7 @@ namespace Antix.Handlers.Tests
             var serviceProvider = TestConfiguration.GetServiceProvider();
 
             var are = new AutoResetEvent(false);
-            var executor = serviceProvider.GetService<Executor<IEvent>>()
+            var executor = new Executor<IEvent>()
                 .AddHandler<Event<TotalSet>>(d =>
                 {
                     are.Set();
@@ -80,7 +80,7 @@ namespace Antix.Handlers.Tests
             var serviceProvider = TestConfiguration.GetServiceProvider();
 
             var are = new AutoResetEvent(false);
-            var executor = serviceProvider.GetService<Executor<ICommandWrapper, Aggregate>>()
+            var executor = new Executor<ICommandWrapper, Aggregate>()
                 .AddHandler<CommandWrapper<Increment>>((d, s) =>
                 {
                     are.Set();
@@ -97,7 +97,7 @@ namespace Antix.Handlers.Tests
             var serviceProvider = TestConfiguration.GetServiceProvider();
 
             var are = new AutoResetEvent(false);
-            var executor = serviceProvider.GetService<Executor<ICommandWrapper, Aggregate>>()
+            var executor = new Executor<ICommandWrapper, Aggregate>()
                 .AddHandler<CommandWrapper<Increment>>((d, s) =>
                 {
                     are.Set();
